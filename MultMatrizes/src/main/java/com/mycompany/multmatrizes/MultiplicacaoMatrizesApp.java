@@ -27,7 +27,8 @@ public class MultiplicacaoMatrizesApp {
      */
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
 
-        localMultipleThreadMultiplication();
+        localSingleThreadMultiplication();
+        //localMultipleThreadMultiplication();
         //teste();
     }
 
