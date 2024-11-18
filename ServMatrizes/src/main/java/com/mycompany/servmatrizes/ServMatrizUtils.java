@@ -1,4 +1,4 @@
-package com.mycompany.multmatrizes;
+package com.mycompany.servmatrizes;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,11 +10,9 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class MatrizUtils {
+public class ServMatrizUtils {
 
-    static int dimensions = 0;
-    static double[][] matA;
-    static double[][] matB;
+    //static int dimensions = 0;
 
     /**
      * Lê o arquivo da matriz (txt) e retorna uma nova matriz double[][]<br>
@@ -22,11 +20,12 @@ public class MatrizUtils {
      * atribuída;<br>
      * confira o método "atribuiDimensoes"
      *
+     * @param dimensions
      * @see atribuiDimensoes
      * @param filePath
      * @return
      */
-    public static double[][] instanciarMatriz(String filePath) {
+    public static double[][] instanciarMatriz(String filePath, int dimensions) {
         double[][] newMat = null;
         BufferedReader reader;
         try {
@@ -53,9 +52,9 @@ public class MatrizUtils {
             }
 
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(MatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServMatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(MatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServMatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return newMat;
     }
@@ -144,8 +143,9 @@ public class MatrizUtils {
      *
      * @param filePath
      */
-    public static void atribuiDimensoes(String filePath) {
+    public static int atribuiDimensoes(String filePath) {
         BufferedReader reader;
+        int dimensions = 0;
         try {
             reader = new BufferedReader(new FileReader(filePath));
             StringBuilder content = new StringBuilder();
@@ -159,10 +159,11 @@ public class MatrizUtils {
             reader.close();
 
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(MatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServMatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            Logger.getLogger(MatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServMatrizUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return dimensions;
 
     }
 
