@@ -1,31 +1,40 @@
-package com.mycompany.multmatrizes;
+package com.mycompany.multmatrices;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClientComunicacaoUtils {
-
+public class ClientCommunicationUtils {
     private static final int SERVER_PORT = 12345;
-    private static final String SERVER_HOST = "localhost";
+    public static String serverHost = "";
 
-    
-    // Converte JSON para uma matriz double[][]
+
+    /**
+     * Converte JSON para uma matriz double[][]
+     * 
+     * @param json
+     * @return
+     * @throws JsonMappingException
+     * @throws JsonProcessingException 
+     */
     public static double[][] jsonToMatrix(String json) throws JsonMappingException, JsonProcessingException {
         // Cria uma nova instância do ObjectMapper para a operação de deserialização
         ObjectMapper mapper = new ObjectMapper();
-
         // Usa o ObjectMapper para converter a String JSON de volta para uma matriz double[][] e retorna essa matriz
         return mapper.readValue(json, double[][].class);
     }
     
-    // Converte uma matriz double[][] para JSON
-    public static String matrizParaJson(double[][] matrix) throws JsonProcessingException {
+    /**
+     * Converte uma matriz double[][] para JSON
+     * @param matrix
+     * @return
+     * @throws JsonProcessingException 
+     */
+    public static String matrixToJson(double[][] matrix) throws JsonProcessingException {
         // Cria uma instância do ObjectMapper, que é a classe principal para manipulação JSON no Jackson
         ObjectMapper mapper = new ObjectMapper();
 
@@ -33,7 +42,15 @@ public class ClientComunicacaoUtils {
         return mapper.writeValueAsString(matrix);
     }
     
-    public static String matrizesParaJson(String operation, double[][] matrixA, double[][] matrixB) throws JsonProcessingException {
+    /**
+     * 
+     * @param operation
+     * @param matrixA
+     * @param matrixB
+     * @return
+     * @throws JsonProcessingException 
+     */
+    public static String matricesToJson(String operation, double[][] matrixA, double[][] matrixB) throws JsonProcessingException {
         // Cria uma instância do ObjectMapper
         ObjectMapper mapper = new ObjectMapper();
 
@@ -46,13 +63,20 @@ public class ClientComunicacaoUtils {
         // Converte o mapa para uma String JSON
         return mapper.writeValueAsString(jsonMap);
     }
-    
-    public static double[][] enviaRequisicaoAoServ(double[][] matA, double matB[][], String operacao) {
+
+    /**
+     * 
+     * @param matA
+     * @param matB
+     * @param operation
+     * @return 
+     */
+    public static double[][] sendRequestToServer(double[][] matA, double matB[][], String operation) {
         double[][] matProcessed = null;
 
         try {
             // Cria um socket para conectar ao servidor no host e na porta especificados
-            Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
+            Socket socket = new Socket(serverHost, SERVER_PORT);
             System.out.println("Conectado ao servidor!");
 
             // Cria um fluxo de saída para enviar dados ao servidor
@@ -61,9 +85,8 @@ public class ClientComunicacaoUtils {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
             // Converte a matriz para uma string JSON usando um método auxiliar
-            String json = matrizesParaJson(operacao, matA, matB);
+            String json = matricesToJson(operation, matA, matB);
 
-            
             System.out.println("Enviando payload ao servidor como JSON...");
             out.println(json);
 
@@ -79,7 +102,7 @@ public class ClientComunicacaoUtils {
             out.close();
             in.close();
             socket.close();
-            
+
         } catch (JsonProcessingException e) {
             // Captura e exibe erros relacionados ao processamento de JSON
             e.printStackTrace();
@@ -87,9 +110,26 @@ public class ClientComunicacaoUtils {
             // Captura e exibe erros relacionados a operações de entrada/saída
             e.printStackTrace();
         }
-        
+
         return matProcessed;
     }
 
-    
+    public static void closeServer() throws IOException {
+        Socket socket = new Socket(serverHost, SERVER_PORT);
+        System.out.println("Conectado ao servidor!");
+
+        // Cria um fluxo de saída para enviar dados ao servidor
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+ 
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("operation", "exit");
+        String json = mapper.writeValueAsString(jsonMap);
+        
+        System.out.println("Enviando payload ao servidor como JSON...");
+        out.println(json);
+    }
+
 }

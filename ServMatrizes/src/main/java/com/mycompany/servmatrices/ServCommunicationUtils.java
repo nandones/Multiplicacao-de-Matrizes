@@ -1,25 +1,28 @@
-package com.mycompany.servmatrizes;
+package com.mycompany.servmatrices;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-public class ServComunicacaoUtils {
+public class ServCommunicationUtils {
 
     private static final int SERVER_PORT = 12345;
     private static ServerSocket serverSocket;
 
-    // Converte JSON para uma matriz double[][]
+    /**
+     * Converte JSON para uma matriz double[][]
+     * @param json
+     * @return
+     * @throws JsonMappingException
+     * @throws JsonProcessingException 
+     */
     public static double[][] jsonToMatrix(String json) throws JsonMappingException, JsonProcessingException {
         // Cria uma nova instância do ObjectMapper para a operação de deserialização
         ObjectMapper mapper = new ObjectMapper();
@@ -28,8 +31,13 @@ public class ServComunicacaoUtils {
         return mapper.readValue(json, double[][].class);
     }
 
-    // Converte uma matriz double[][] para JSON
-    public static String matrizParaJson(double[][] matrix) throws JsonProcessingException {
+    /**
+     * Converte uma matriz double[][] para JSON
+     * @param matrix
+     * @return
+     * @throws JsonProcessingException 
+     */
+    public static String matrixToJson(double[][] matrix) throws JsonProcessingException {
         // Cria uma instância do ObjectMapper, que é a classe principal para manipulação JSON no Jackson
         ObjectMapper mapper = new ObjectMapper();
 
@@ -37,7 +45,15 @@ public class ServComunicacaoUtils {
         return mapper.writeValueAsString(matrix);
     }
 
-    public static String matrizesParaJson(String operation, double[][] matrixA, double[][] matrixB) throws JsonProcessingException {
+    /**
+     * 
+     * @param operation
+     * @param matrixA
+     * @param matrixB
+     * @return
+     * @throws JsonProcessingException 
+     */
+    public static String matricesToJson(String operation, double[][] matrixA, double[][] matrixB) throws JsonProcessingException {
         // Cria uma instância do ObjectMapper
         ObjectMapper mapper = new ObjectMapper();
 
@@ -51,16 +67,30 @@ public class ServComunicacaoUtils {
         return mapper.writeValueAsString(jsonMap);
     }
 
-    public static void iniciaServer() throws IOException, InterruptedException, ExecutionException {
+    /**
+     * 
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException 
+     */
+    public static void startServer() throws IOException, InterruptedException, ExecutionException {
+        System.out.println("Servidor rodando em: "+InetAddress.getLocalHost());
         serverSocket = new ServerSocket(SERVER_PORT);
         boolean serv = true;
         while (serv) {
             System.out.println("Servidor aguardando conexão na porta " + SERVER_PORT);
-            serv = respondeReqDoCliente();
+            serv = respondRequestFromClient();
         }
     }
 
-    public static boolean respondeReqDoCliente() throws IOException, InterruptedException, ExecutionException {
+    /**
+     * 
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExecutionException 
+     */
+    public static boolean respondRequestFromClient() throws IOException, InterruptedException, ExecutionException {
         Socket clientSocket = serverSocket.accept();
         System.out.println("Cliente conectado!");
         double[][] matrix = null;
@@ -81,17 +111,13 @@ public class ServComunicacaoUtils {
         double[][] matrixA = mapper.convertValue(map.get("matrixA"), double[][].class);
         double[][] matrixB = mapper.convertValue(map.get("matrixB"), double[][].class);
 
-        //exibe a operação:
-        System.out.println(operation);
-        // Exibe a matriz recebida
-        //MatrizUtils.printaMatriz(matrixA, "MatA");
-        // Exibe a matriz recebida
-        //MatrizUtils.printaMatriz(matrixB, "MatB");
+
+        System.out.println("->"+operation+":");
         if ("singleThread".equalsIgnoreCase(operation)) {
-            matrix = ServMatrizUtils.multiplicaMatrizes(matrixA, matrixB);
+            matrix = ServMatrixUtils.multiplyMatrices(matrixA, matrixB);
         }
         if ("multiThread".equalsIgnoreCase(operation)) {
-            matrix = ServMatrizesApp.localMultipleThreadMultiplication(matrixA, matrixB);
+            matrix = ServMatrixApp.localMultipleThreadMultiplication(matrixA, matrixB);
         }
         if ("exit".equalsIgnoreCase(operation)) {
             return false;
@@ -101,7 +127,7 @@ public class ServComunicacaoUtils {
         if(matrix == null){
             System.out.println("ERRO, RESPOSTA É NULL");
         }
-        json = matrizParaJson(matrix);
+        json = matrixToJson(matrix);
         // Envia o JSON para o servidor
         out.println(json);
         return true;
